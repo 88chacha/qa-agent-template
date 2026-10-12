@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>하루마켓 상담 도우미</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root {
+    --bg:#F4F5F7; --card:#FFFFFF; --ink:#1B1F29; --sub:#5E6675; --faint:#8C93A1; --line:#E3E6EB;
+    --brand:#3B5BDB; --brand-soft:#EDF2FF; --brand-ink:#2F4AC0;
+    --green:#1E8E5A; --green-soft:#E6F6EE; --amber:#B26B00; --amber-soft:#FFF4DC; --gray-soft:#EEF0F3;
+    --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+  }
+  * { box-sizing:border-box; }
+  [hidden] { display:none !important; }
+  html, body { height:100%; }
+  body { margin:0; font-family:"Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+         color:var(--ink); background:var(--bg); -webkit-font-smoothing:antialiased; word-break:keep-all; }
+  button, input, textarea { font:inherit; color:inherit; }
+
+  .banner { background:var(--amber-soft); color:var(--amber); text-align:center; padding:6px; font-size:13px; font-weight:700; }
+  header { height:56px; display:flex; align-items:center; gap:12px; padding:0 20px; background:var(--card); border-bottom:1px solid var(--line); }
+  .logo { width:30px; height:30px; border-radius:9px; background:var(--brand); color:#fff; display:grid; place-items:center; font-weight:800; font-size:15px; }
+  header h1 { font-size:16px; margin:0; font-weight:800; }
+  header .tag { font-size:13px; color:var(--sub); }
+  header .right { margin-left:auto; display:flex; gap:8px; align-items:center; }
+  .chip { display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:999px; font-size:12px; font-weight:700; background:var(--gray-soft); color:var(--sub); }
+  .chip .dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
+  .chip.ok { background:var(--green-soft); color:var(--green); }
+  .chip.warn { background:var(--amber-soft); color:var(--amber); }
+  .chip.brand { background:var(--brand-soft); color:var(--brand-ink); }
+
+  .layout { display:grid; grid-template-columns:290px minmax(0,1fr) 380px; gap:16px; padding:16px; height:calc(100vh - 56px); }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); display:flex; flex-direction:column; min-height:0; }
+  .panel-head { padding:14px 16px 10px; display:flex; align-items:center; gap:8px; }
+  .panel-head h2 { font-size:14px; margin:0; font-weight:800; }
+  .panel-head .count { font-size:12px; color:var(--faint); }
+  .scroll { overflow:auto; min-height:0; flex:1; }
+
+  /* 문의함 */
+  .search { margin:0 12px 8px; height:36px; border:1px solid var(--line); border-radius:10px; padding:0 12px; background:var(--bg); outline:none; width:calc(100% - 24px); }
+  .search:focus { border-color:var(--brand); background:#fff; }
+  .inbox { list-style:none; margin:0; padding:0 8px 8px; }
+  .inbox li { padding:10px 10px; border-radius:10px; cursor:pointer; display:grid; grid-template-columns:auto 1fr; gap:4px 10px; }
+  .inbox li:hover { background:var(--bg); }
+  .inbox li.active { background:var(--brand-soft); }
+  .avatar { grid-row:span 2; width:30px; height:30px; border-radius:50%; background:var(--gray-soft); color:var(--sub); display:grid; place-items:center; font-size:11px; font-weight:800; }
+  .inbox li.active .avatar { background:var(--brand); color:#fff; }
+  .inbox .meta { font-size:12px; color:var(--faint); }
+  .inbox .text { font-size:13px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+  /* 가운데 */
+  .center { display:flex; flex-direction:column; gap:16px; min-height:0; overflow:auto; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; }
+  .card h3 { margin:0 0 10px; font-size:14px; font-weight:800; display:flex; align-items:center; gap:8px; }
+  textarea { width:100%; min-height:110px; resize:vertical; border:1px solid var(--line); border-radius:10px; padding:12px; line-height:1.6; outline:none; background:var(--bg); }
+  textarea:focus { border-color:var(--brand); background:#fff; }
+  .actions { display:flex; gap:8px; margin-top:12px; align-items:center; }
+  .btn { height:38px; padding:0 16px; border-radius:10px; border:1px solid transparent; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+  .btn.primary { background:var(--brand); color:#fff; }
+  .btn.primary:hover { background:var(--brand-ink); }
+  .btn.primary:disabled { opacity:.55; cursor:default; }
+  .btn.ghost { background:#fff; border-color:var(--line); color:var(--sub); }
+  .btn.ghost:hover { background:var(--bg); }
+  .hint { margin-left:auto; font-size:12px; color:var(--faint); }
+
+  .draft { min-height:150px; line-height:1.75; font-size:15px; white-space:pre-wrap; }
+  .draft.placeholder { color:var(--faint); font-size:14px; }
+  .cursor { display:inline-block; width:2px; height:1.1em; background:var(--brand); vertical-align:-3px; margin-left:1px; animation:blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity:0; } }
+  .alert { border-radius:12px; padding:14px 16px; font-size:14px; line-height:1.6; }
+  .alert.warn { background:var(--amber-soft); color:#7A4A00; }
+  .alert.info { background:var(--gray-soft); color:var(--sub); }
+  .alert b { display:block; margin-bottom:2px; }
+  .draft-foot { display:flex; align-items:center; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-size:12px; color:var(--faint); flex-wrap:wrap; }
+  .draft-foot .btn { height:32px; font-size:13px; margin-left:auto; }
+
+  /* 오른쪽 */
+  .steps { list-style:none; margin:0; padding:4px 16px 8px; }
+  .steps li { position:relative; padding:0 0 16px 34px; }
+  .steps li::before { content:""; position:absolute; left:11px; top:24px; bottom:0; width:2px; background:var(--line); }
+  .steps li:last-child::before { display:none; }
+  .num { position:absolute; left:0; top:0; width:24px; height:24px; border-radius:50%; background:var(--gray-soft); color:var(--faint); font-size:12px; font-weight:800; display:grid; place-items:center; }
+  .steps li.done .num { background:var(--brand); color:#fff; }
+  .steps li.stop .num { background:var(--amber); color:#fff; }
+  .steps li.skip { opacity:.45; }
+  .steps .t { font-size:13px; font-weight:800; }
+  .steps .d { font-size:12px; color:var(--sub); margin-top:2px; line-height:1.5; }
+  .steps .d .chip { margin-top:6px; }
+  .sources { padding:0 16px 16px; display:flex; flex-direction:column; gap:8px; }
+  .source { border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  .source .st { font-size:13px; font-weight:800; display:flex; gap:6px; align-items:center; }
+  .source .se { font-size:12px; color:var(--sub); margin-top:4px; line-height:1.5; }
+  .empty { font-size:12px; color:var(--faint); }
+  .divider { height:1px; background:var(--line); margin:4px 16px 12px; }
+  .sub-head { padding:0 16px 8px; font-size:12px; font-weight:800; color:var(--sub); }
+
+
+  .routes { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .route { height:28px; padding:0 12px; border-radius:8px; font-size:13px; font-weight:800; display:inline-flex; align-items:center; background:var(--brand-soft); color:var(--brand-ink); }
+  .route.esc { background:var(--amber-soft); color:var(--amber); }
+  .route.oth { background:var(--gray-soft); color:var(--sub); }
+  .route .rank { font-size:11px; opacity:.7; margin-right:6px; }
+  .conf { margin-top:10px; }
+  .conf .bar { position:relative; height:8px; border-radius:999px; background:var(--gray-soft); overflow:visible; }
+  .conf .fill { height:100%; border-radius:999px; background:var(--brand); }
+  .conf .fill.low { background:var(--amber); }
+  .conf .th { position:absolute; top:-3px; width:2px; height:14px; background:var(--ink); opacity:.5; }
+  .conf .lbl { display:flex; justify-content:space-between; font-size:11px; color:var(--faint); margin-top:4px; }
+  .why { margin-top:10px; font-size:12px; line-height:1.55; color:var(--sub); background:var(--bg); border-radius:8px; padding:8px 10px; }
+  .why b { color:var(--ink); }
+  .guard { margin-top:8px; font-size:12px; line-height:1.5; color:#7A4A00; background:var(--amber-soft); border-radius:8px; padding:8px 10px; }
+  .by { font-size:11px; font-weight:700; color:var(--faint); margin-left:6px; }
+  details.source { border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  details.source summary { cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; font-size:13px; font-weight:800; }
+  details.source summary::-webkit-details-marker { display:none; }
+  details.source summary .route { height:22px; font-size:11px; padding:0 8px; }
+  details.source summary::after { content:"펼치기"; margin-left:auto; font-size:11px; color:var(--faint); font-weight:600; }
+  details.source[open] summary::after { content:"접기"; }
+  details.source .body { font-size:12.5px; color:var(--sub); line-height:1.65; margin-top:8px; white-space:pre-wrap; }
+  .spinner { width:14px; height:14px; border:2px solid var(--line); border-top-color:var(--brand); border-radius:50%; animation:spin .8s linear infinite; display:inline-block; vertical-align:-2px; margin-right:6px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  @media (max-width:1100px) {
+    .layout { grid-template-columns:260px minmax(0,1fr); height:auto; }
+    .right-col { grid-column:1 / -1; }
+  }
+  @media (max-width:760px) {
+    .layout { grid-template-columns:1fr; }
+    .inbox-panel { max-height:280px; }
+    header .tag { display:none; }
+  }
+</style>
+</head>
+<body>
+<!--ENV_BANNER-->
+<header>
+  <div class="logo">H</div>
+  <h1>하루마켓 상담 도우미</h1>
+  <span class="tag">문의를 분류하고, 분류에 맞는 문서를 근거로 답변 초안을 만듭니다</span>
+  <div class="right">
+    <span class="chip" id="mode"><span class="dot"></span>연결 확인 중</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- 문의함 -->
+  <section class="panel inbox-panel">
+    <div class="panel-head"><h2>문의함</h2><span class="count" id="count"></span></div>
+    <input class="search" id="search" placeholder="문의 검색">
+    <div class="scroll"><ul class="inbox" id="inbox"></ul></div>
+  </section>
+
+  <!-- 문의와 초안 -->
+  <section class="center">
+    <div class="card">
+      <h3>고객 문의 <span class="chip" id="qid" hidden></span></h3>
+      <textarea id="question" placeholder="왼쪽 문의함에서 문의를 고르거나 직접 붙여 넣으세요"></textarea>
+      <div class="actions">
+        <button class="btn primary" id="run">초안 만들기</button>
+        <button class="btn ghost" id="clear">지우기</button>
+        <span class="hint">Ctrl + Enter로도 실행할 수 있습니다</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>답변 초안 <span class="chip" id="status" hidden></span></h3>
+      <div id="result"><div class="draft placeholder">초안을 만들면 여기에 한 글자씩 표시됩니다. 최종 발송은 담당자가 확인한 뒤 진행합니다.</div></div>
+      <div class="draft-foot" id="foot" hidden>
+        <span id="timing"></span>
+        <button class="btn ghost" id="copy">초안 복사</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 처리 결과 -->
+  <section class="panel right-col">
+    <div class="panel-head"><h2>처리 결과</h2></div>
+    <div class="scroll">
+      <ol class="steps" id="steps">
+        <li id="s1"><span class="num">1</span><div class="t">라우팅 <span class="by" id="by"></span></div><div class="d" id="d1">문의를 읽고 분류를 고릅니다</div></li>
+        <li id="s2"><span class="num">2</span><div class="t">근거 문서 선택</div><div class="d" id="d2">분류에 연결된 FAQ·정책 문서를 고릅니다</div></li>
+        <li id="s3"><span class="num">3</span><div class="t">답변 초안</div><div class="d" id="d3">고른 문서만 근거로 초안을 씁니다</div></li>
+      </ol>
+      <div class="divider"></div>
+      <div class="sub-head">근거 문서</div>
+      <div class="sources" id="sources"><div class="empty">아직 고른 문서가 없습니다</div></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+const post = (url, body) => fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(body) });
+const THRESHOLD = 0.6;
+let all = [], activeId = null, info = {};
+
+async function init() {
+  info = await fetch("/version").then(r => r.json()).catch(() => ({}));
+  const m = $("mode");
+  m.className = "chip " + (info.llm === "fake" ? "warn" : "ok");
+  m.innerHTML = '<span class="dot"></span>' + (info.llm === "fake" ? "가짜 응답 모드" : "AI 연결됨 · " + esc(info.model));
+  all = await fetch("/api/inquiries").then(r => r.json());
+  renderInbox();
+  const auto = new URLSearchParams(location.search).get("inquiry");
+  if (auto) { pick(auto); run(); }
+}
+
+function renderInbox() {
+  const k = $("search").value.trim();
+  const list = all.filter(q => !k || q.text.includes(k));
+  $("count").textContent = list.length + "건";
+  $("inbox").innerHTML = list.map(q =>
+    `<li data-id="${q.id}" class="${q.id === activeId ? "active" : ""}">
+       <span class="avatar">${q.id.slice(1)}</span>
+       <span class="meta">${q.id}</span>
+       <span class="text">${esc(q.text)}</span>
+     </li>`).join("");
+  $("inbox").querySelectorAll("li").forEach(li => li.onclick = () => pick(li.dataset.id));
+}
+
+function pick(id) {
+  const q = all.find(x => x.id === id);
+  if (!q) return;
+  activeId = id;
+  $("question").value = q.text;
+  $("qid").hidden = false; $("qid").textContent = id;
+  renderInbox();
+  resetResult();
+}
+
+const PLACEHOLDER = '<div class="draft placeholder">초안을 만들면 여기에 한 글자씩 표시됩니다. 최종 발송은 담당자가 확인한 뒤 진행합니다.</div>';
+function resetResult() {
+  $("result").innerHTML = PLACEHOLDER;
+  $("foot").hidden = true; $("status").hidden = true;
+  ["s1", "s2", "s3"].forEach(s => $(s).className = "");
+  $("by").textContent = "";
+  $("d1").textContent = "문의를 읽고 분류를 고릅니다";
+  $("d2").textContent = "분류에 연결된 FAQ·정책 문서를 고릅니다";
+  $("d3").textContent = "고른 문서만 근거로 초안을 씁니다";
+  $("sources").innerHTML = '<div class="empty">아직 고른 문서가 없습니다</div>';
+}
+
+function setStatus(text, kind) { const s = $("status"); s.hidden = false; s.className = "chip " + kind; s.textContent = text; }
+
+async function run() {
+  const question = $("question").value.trim();
+  if (!question) return;
+  resetResult();
+  $("run").disabled = true;
+  $("s1").className = "done";
+  $("d1").innerHTML = '<span class="spinner"></span>분류하는 중';
+  setStatus("라우팅 중", "brand");
+
+  const t0 = performance.now();
+  const r = await post("/api/route", { question }).then(res => res.json());
+  const routeMs = performance.now() - t0;
+  showRoute(r, routeMs);
+
+  if (r.action !== "answer") {
+    const warn = r.action === "escalate";
+    $("result").innerHTML = `<div class="alert ${warn ? "warn" : "info"}"><b>${warn ? "담당자 검토가 필요한 문의입니다" : "준비된 문서의 범위 밖입니다"}</b>사유: ${esc(String(r.action_reason || "").replace(/\.$/, ""))}. AI 초안을 만들지 않았습니다.</div>`;
+    setStatus(warn ? "담당자 검토" : "범위 밖", warn ? "warn" : "");
+    $("run").disabled = false;
+    return;
+  }
+
+  setStatus("작성 중", "brand");
+  $("s3").className = "done";
+  $("d3").innerHTML = '<span class="spinner"></span>근거 문서로 초안을 쓰는 중';
+  $("result").innerHTML = '<div class="draft" id="draft"></div>';
+  const draft = $("draft");
+  const started = performance.now();
+  let first = null, text = "";
+  const res = await post("/api/draft", { question, routes: r.routes.map(x => x.id) });
+  const reader = res.body.getReader(), decoder = new TextDecoder();
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    if (first === null) first = performance.now() - started;
+    text += decoder.decode(value, { stream:true });
+    draft.innerHTML = esc(text) + '<span class="cursor"></span>';
+  }
+  const total = performance.now() - started;
+  draft.textContent = text.trim();
+  setStatus("초안 완료", "ok");
+  $("d3").textContent = info.llm === "fake" ? "가짜 응답 모드: 근거 문서의 문장을 골라 엮었습니다" : `${info.model}이 근거 문서 ${r.docs.length}개로 초안을 썼습니다`;
+  $("timing").textContent = `라우팅 ${(routeMs / 1000).toFixed(1)}초 · 초안 첫 글자 ${(first / 1000).toFixed(1)}초 · 초안 전체 ${(total / 1000).toFixed(1)}초 · 최종 발송은 담당자가 합니다`;
+  $("foot").hidden = false;
+  $("run").disabled = false;
+}
+
+function showRoute(r, ms) {
+  $("by").textContent = r.decided_by === "model" ? "AI 라우터 · " + (info.model || "") : "키워드 규칙";
+  const chips = r.routes.map((x, i) => {
+    const cls = x.id === "ESCALATE" ? "esc" : x.id === "OTHER" ? "oth" : "";
+    const rank = r.routes.length > 1 ? `<span class="rank">${i + 1}</span>` : "";
+    return `<span class="route ${cls}">${rank}${esc(x.label)}</span>`;
+  }).join("");
+  const pct = Math.round(r.confidence * 100), low = r.confidence < THRESHOLD;
+  const guards = (r.guards || []).map(g => `<div class="guard">안전장치: ${esc(g)}</div>`).join("");
+  $("s1").className = r.action === "answer" ? "done" : "stop";
+  $("d1").innerHTML = `
+    <div class="routes">${chips}</div>
+    <div class="conf">
+      <div class="bar"><div class="fill ${low ? "low" : ""}" style="width:${pct}%"></div><div class="th" style="left:${THRESHOLD * 100}%"></div></div>
+      <div class="lbl"><span>확신도 ${pct}%</span><span>기준 ${THRESHOLD * 100}% · ${(ms / 1000).toFixed(1)}초</span></div>
+    </div>
+    <div class="why"><b>분류 이유</b> ${esc(r.reason)}</div>${guards}`;
+
+  if (r.action !== "answer") {
+    $("s2").className = "skip"; $("s3").className = "skip";
+    $("d2").textContent = "문서로 답하지 않는 문의라 건너뜁니다";
+    return;
+  }
+  $("s2").className = "done";
+  $("d2").textContent = `분류에 연결된 문서 ${r.docs.length}개를 근거로 씁니다`;
+  const labelOf = id => (r.routes.find(x => x.id === id) || {}).label || id;
+  $("sources").innerHTML = r.docs.map((d, i) =>
+    `<details class="source" ${i === 0 ? "open" : ""}>
+       <summary><span class="route">${esc(labelOf(d.route))}</span>${esc(d.title)}</summary>
+       <div class="body">${esc(d.body)}</div>
+     </details>`).join("");
+}
+
+$("search").oninput = renderInbox;
+$("run").onclick = run;
+$("clear").onclick = () => { $("question").value = ""; activeId = null; $("qid").hidden = true; renderInbox(); resetResult(); };
+$("question").addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") run(); });
+$("copy").onclick = async () => {
+  const d = $("draft"); if (!d) return;
+  await navigator.clipboard.writeText(d.textContent);
+  $("copy").textContent = "복사했습니다"; setTimeout(() => $("copy").textContent = "초안 복사", 1500);
+};
+init();
+</script>
+</body>
+</html>
